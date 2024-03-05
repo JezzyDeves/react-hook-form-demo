@@ -9,11 +9,17 @@ import { z } from "zod";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your first name"),
+  address: z.object({
+    addressLine1: z.string().min(1, "Please enter your street address"),
+  }),
 });
 
 export default function Home() {
   const [store, setStore] = useState<z.infer<typeof formSchema>>({
     name: "Jon",
+    address: {
+      addressLine1: "123 Foo St",
+    },
   });
 
   const {
@@ -28,7 +34,12 @@ export default function Home() {
 
   useEffect(() => {
     const subscription = watch((value) => {
-      setStore({ name: value.name! });
+      setStore({
+        name: value.name!,
+        address: {
+          addressLine1: value.address?.addressLine1!,
+        },
+      });
     });
 
     return () => subscription.unsubscribe();
@@ -63,6 +74,16 @@ export default function Home() {
                   />
                   <Form.Control.Feedback type="invalid">
                     {errors.name?.message}
+                  </Form.Control.Feedback>
+                </Form.Group>
+                <Form.Group>
+                  <Form.Label>Address Line 1</Form.Label>
+                  <Form.Control
+                    isInvalid={!!errors.address?.addressLine1}
+                    {...register("address.addressLine1")}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.address?.addressLine1?.message}
                   </Form.Control.Feedback>
                 </Form.Group>
                 <Button className="mt-2" type="submit">
