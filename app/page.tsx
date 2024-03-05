@@ -1,40 +1,35 @@
 "use client";
 
+import {
+  PersonInfo,
+  personInfoSchema,
+  usePersonInfoStore,
+} from "@/stores/usePersonInfoStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserCircle2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button, Card, Col, Form, Row } from "react-bootstrap";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-const formSchema = z.object({
-  name: z.string().min(1, "Please enter your first name"),
-  address: z.object({
-    addressLine1: z.string().min(1, "Please enter your street address"),
-  }),
-});
 
 export default function Home() {
-  const [store, setStore] = useState<z.infer<typeof formSchema>>({
-    name: "Jon",
-    address: {
-      addressLine1: "123 Foo St",
-    },
-  });
+  const [personInfo, setPersonInfo] = usePersonInfoStore((state) => [
+    state.personInfo,
+    state.setPersonInfo,
+  ]);
 
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: store,
+  } = useForm<PersonInfo>({
+    resolver: zodResolver(personInfoSchema),
+    values: personInfo,
   });
 
   useEffect(() => {
     const subscription = watch((value) => {
-      setStore({
+      setPersonInfo({
         name: value.name!,
         address: {
           addressLine1: value.address?.addressLine1!,
@@ -44,10 +39,6 @@ export default function Home() {
 
     return () => subscription.unsubscribe();
   }, [watch]);
-
-  useEffect(() => {
-    console.log(store);
-  }, [store]);
 
   return (
     <>
