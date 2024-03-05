@@ -8,6 +8,11 @@ export const personInfoSchema = z.object({
   address: z.object({
     addressLine1: z.string().min(1, "Please enter your street address"),
   }),
+  otherPeople: z.array(
+    z.object({
+      name: z.string().min(1, "Please enter your first name"),
+    })
+  ),
 });
 
 export type PersonInfo = z.infer<typeof personInfoSchema>;
@@ -21,7 +26,11 @@ export const usePersonInfoStore = create<PersonInfoStore>()(
   immer(
     persist(
       (set) => ({
-        personInfo: { address: { addressLine1: "" }, name: "" },
+        personInfo: {
+          address: { addressLine1: "" },
+          name: "",
+          otherPeople: [],
+        },
         setPersonInfo: (info) =>
           set((state) => {
             state.personInfo = info;

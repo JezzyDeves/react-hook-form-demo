@@ -6,10 +6,10 @@ import {
   usePersonInfoStore,
 } from "@/stores/usePersonInfoStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserCircle2 } from "lucide-react";
+import { MinusCircle, PlusCircle, UserCircle2 } from "lucide-react";
 import { useEffect } from "react";
-import { Button, Card, Col, Form, Row } from "react-bootstrap";
-import { useForm } from "react-hook-form";
+import { Button, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
+import { useFieldArray, useForm } from "react-hook-form";
 
 export default function Home() {
   const [personInfo, setPersonInfo] = usePersonInfoStore((state) => [
@@ -21,10 +21,20 @@ export default function Home() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
   } = useForm<PersonInfo>({
     resolver: zodResolver(personInfoSchema),
     values: personInfo,
+  });
+
+  const {
+    append: appendPerson,
+    remove: removePerson,
+    fields: otherPeople,
+  } = useFieldArray({
+    name: "otherPeople",
+    control,
   });
 
   useEffect(() => {
@@ -34,6 +44,9 @@ export default function Home() {
         address: {
           addressLine1: value.address?.addressLine1!,
         },
+        otherPeople:
+          value.otherPeople?.map((person) => ({ name: person?.name ?? "" })) ??
+          [],
       });
     });
 
@@ -77,9 +90,45 @@ export default function Home() {
                     {errors.address?.addressLine1?.message}
                   </Form.Control.Feedback>
                 </Form.Group>
-                <Button className="mt-2" type="submit">
-                  Submit
-                </Button>
+
+                {otherPeople.map((person, index) => (
+                  <Form.Group key={person.id}>
+                    <Form.Label>Person {index + 1} Name</Form.Label>
+                    <InputGroup>
+                      <Form.Control
+                        isInvalid={!!errors?.otherPeople?.[index]}
+                        {...register(`otherPeople.${index}.name`)}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors?.otherPeople?.[index]?.name?.message}
+                      </Form.Control.Feedback>
+                      <Button
+                        onClick={() => removePerson(index)}
+                        variant="danger"
+                      >
+                        <MinusCircle />
+                      </Button>
+                    </InputGroup>
+                  </Form.Group>
+                ))}
+
+                {otherPeople.length < 3 ? (
+                  <Row>
+                    <Button
+                      onClick={() => appendPerson({ name: "" })}
+                      className="mt-2"
+                      variant="success"
+                    >
+                      <PlusCircle /> Add Person
+                    </Button>
+                  </Row>
+                ) : null}
+
+                <Row>
+                  <Button className="mt-2" type="submit">
+                    Submit
+                  </Button>
+                </Row>
               </Form>
             </Card.Body>
           </Card>
