@@ -19,6 +19,22 @@ export const formValueSchema = z.object({
         return true;
       }, `DOB must be ${DateTime.now().toFormat("MM/dd/yyyy")} or earlier`),
   }),
+  dependents: z.array(
+    z.object({
+      name: z.string().min(1, "Name is required"),
+      dateOfBirth: z
+        .custom<DateTime>()
+        .nullable()
+        .refine((date) => date?.isValid, "Invalid date")
+        .refine((date) => {
+          if (!!date && date > DateTime.now()) {
+            return false;
+          }
+
+          return true;
+        }, `DOB must be ${DateTime.now().toFormat("MM/dd/yyyy")} or earlier`),
+    })
+  ),
 });
 
 export type FormStoreValues = z.infer<typeof formValueSchema>;
@@ -36,6 +52,7 @@ export const useFormStore = create<FormStore>()(
         email: "",
         name: "",
       },
+      dependents: [],
     },
     setValues: (v) =>
       set((state) => {
